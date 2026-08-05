@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>AI Meeting Minutes Generator</title>
+
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background: #f4f7fb;
+            font-family: Arial, sans-serif;
+        }
+
+        .container-box {
+            max-width: 900px;
+            margin: 40px auto;
+            background: white;
+            padding: 35px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #0d6efd;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+
+        label {
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .btn-top {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        textarea {
+            resize: vertical;
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 12px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .voice-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            margin-bottom: 15px;
+        }
+
+        #recordingStatus {
+            margin-top: 10px;
+            font-weight: bold;
+            color: #0d6efd;
+        }
+    </style>
+
+
+</head>
+
+<body>
+
+<div class="container-box">
+
+
+    <div class="btn-top">
+        <a href="/history" class="btn btn-secondary">Meeting History</a>
+        <a href="/logout" class="btn btn-danger">Logout</a>
+    </div>
+
+    <div class="alert alert-primary text-center fw-bold mb-4">
+        Welcome, <span th:text="${username}">User</span>!
+    </div>
+
+    <h1>AI-Powered Meeting Minutes Generator</h1>
+
+    <form action="/generate" method="post" enctype="multipart/form-data">
+
+        <div class="mb-3">
+            <label class="form-label">Meeting Title</label>
+            <input type="text" class="form-control" name="title"
+                   placeholder="Enter meeting title" required>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Participants</label>
+            <input type="text" class="form-control" name="participants"
+                   placeholder="Enter participant names" required>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Upload Recorded Audio (MP3 / WAV / M4A)</label>
+            <input type="file" class="form-control" name="audioFile"
+                   accept=".mp3,.wav,.m4a,audio/*">
+            <small class="text-muted">
+                Upload a recorded meeting audio file. The transcript will be generated automatically.
+            </small>
+        </div>
+
+        <div class="mb-4">
+            <label class="form-label">Meeting Transcript</label>
+
+            <textarea class="form-control" name="transcript" rows="10"
+                      placeholder="Paste meeting transcript here or use voice recording below"></textarea>
+
+            <div class="voice-buttons">
+                <button type="button" class="btn btn-success" onclick="startRecording()">
+                    🎤 Start Recording
+                </button>
+
+                <button type="button" class="btn btn-danger" onclick="stopRecording()">
+                    ⏹ Stop Recording
+                </button>
+            </div>
+
+            <p id="recordingStatus"></p>
+        </div>
+
+        <button type="submit" class="btn btn-primary generate-btn">
+            Generate Meeting Minutes
+        </button>
+
+    </form>
+
+
+</div>
+
+<script>
+    let recognition;
+
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+
+        const SpeechRecognition =
+            window.SpeechRecognition || window.webkitSpeechRecognition;
+
+        recognition = new SpeechRecognition();
+
+        recognition.lang = 'en-US';
+        recognition.continuous = true;
+        recognition.interimResults = true;
+
+        recognition.onresult = function(event) {
+
+            let transcript = '';
+
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                transcript += event.results[i][0].transcript + ' ';
+            }
+
+            document.querySelector('textarea[name="transcript"]').value = transcript;
+        };
+
+        recognition.onstart = function() {
+            document.getElementById('recordingStatus').innerText =
+                '🎤 Recording... Speak now';
+        };
+
+        recognition.onend = function() {
+            document.getElementById('recordingStatus').innerText =
+                '⏹ Recording stopped';
+        };
+
+        recognition.onerror = function(event) {
+            document.getElementById('recordingStatus').innerText =
+                'Speech recognition error: ' + event.error;
+        };
+
+    }
+
+    function startRecording() {
+
+        if (recognition) {
+            recognition.start();
+        } else {
+            alert('Speech Recognition is not supported in this browser.');
+        }
+
+    }
+
+    function stopRecording() {
+
+        if (recognition) {
+            recognition.stop();
+        }
+
+    }
+</script>
+
+</body>
+</html>
