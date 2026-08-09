@@ -10,10 +10,9 @@ public class GeminiService {
             return "No transcript provided.";
         }
 
-        String shortText = transcript.length() > 300
-                ? transcript.substring(0, 300)
+        String shortText = transcript.length() > 1000
+                ? transcript.substring(0, 1000)
                 : transcript;
-
         return """
 Meeting Summary
 
