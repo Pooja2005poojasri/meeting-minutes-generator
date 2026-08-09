@@ -17,14 +17,14 @@ public class GeminiService {
     private String callGemini(String prompt) {
         try {
             String endpoint =
-                    "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key="
-                            + apiKey;
+                    "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
 
             URL url = new URL(endpoint);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
             connection.setRequestMethod("POST");
             connection.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+            connection.setRequestProperty("Authorization", "Bearer " + apiKey);
             connection.setDoOutput(true);
 
             JsonObject textPart = new JsonObject();
