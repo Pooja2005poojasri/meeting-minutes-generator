@@ -1,54 +1,64 @@
 <!DOCTYPE html>
-
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>User Register</title>
-
+    <meta charset="UTF-8">
+    <title>Register</title>
 
     <style>
-
-        body{
+        body {
             font-family: Arial, sans-serif;
-            background:#f2f2f2;
-            padding:40px;
+            background: #f2f2f2;
+            padding: 40px;
         }
 
-        .container{
-            width:40%;
-            margin:auto;
-            background:white;
-            padding:30px;
-            border-radius:10px;
+        .container {
+            width: 40%;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
 
-        h1{
-            text-align:center;
+        h1 {
+            text-align: center;
         }
 
-        input{
-            width:100%;
-            padding:10px;
-            margin:10px 0;
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            box-sizing: border-box;
         }
 
-        button{
-            background:#007bff;
-            color:white;
-            border:none;
-            padding:10px 20px;
-            cursor:pointer;
-            width:100%;
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            width: 100%;
+            border-radius: 5px;
         }
 
+        button:hover {
+            background: #0056b3;
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .login-link a {
+            text-decoration: none;
+            color: #007bff;
+        }
     </style>
-
-
 </head>
-
 <body>
 
 <div class="container">
-
 
     <h1>User Registration</h1>
 
@@ -64,6 +74,9 @@
 
     </form>
 
+    <div class="login-link">
+        Already have an account? <a href="/login">Login here</a>
+    </div>
 
 </div>
 
