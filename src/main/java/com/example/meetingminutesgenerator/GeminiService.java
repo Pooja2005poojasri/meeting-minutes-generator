@@ -1,75 +1,80 @@
 package com.example.meetingminutesgenerator;
 
-import com.google.genai.Client;
-import com.google.genai.types.GenerateContentResponse;
+import com.google.gson.*;
+import okhttp3.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
 
 @Service
 public class GeminiService {
 
-    @Value("${gemini.api.key}")
+    @Value("${openai.api.key}")
     private String apiKey;
 
-    private String callGemini(String prompt) {
+    private final OkHttpClient client = new OkHttpClient();
+
+    private String callOpenAI(String prompt) {
         try {
-            Client client = Client.builder()
-                    .apiKey(apiKey)
+            JsonObject body = new JsonObject();
+            body.addProperty("model", "gpt-4.1-mini");
+
+            JsonArray messages = new JsonArray();
+
+            JsonObject system = new JsonObject();
+            system.addProperty("role", "system");
+            system.addProperty("content", "You are a professional meeting minutes assistant.");
+            messages.add(system);
+
+            JsonObject user = new JsonObject();
+            user.addProperty("role", "user");
+            user.addProperty("content", prompt);
+            messages.add(user);
+
+            body.add("messages", messages);
+
+            Request request = new Request.Builder()
+                    .url("https://api.openai.com/v1/chat/completions")
+                    .addHeader("Authorization", "Bearer " + apiKey)
+                    .addHeader("Content-Type", "application/json")
+                    .post(RequestBody.create(body.toString(), MediaType.parse("application/json")))
                     .build();
 
-            GenerateContentResponse response = client.models.generateContent(
-                    "gemini-2.5-flash",
-                    prompt,
-                    null
-            );
+            Response response = client.newCall(request).execute();
 
-            return response.text();
+            if (!response.isSuccessful()) {
+                return "OpenAI API Error: " + response.code() + " - " + response.body().string();
+            }
 
-        } catch (Exception e) {
-            return "Gemini API Error: " + e.getMessage();
+            JsonObject json = JsonParser.parseString(response.body().string()).getAsJsonObject();
+
+            return json.getAsJsonArray("choices")
+                    .get(0).getAsJsonObject()
+                    .getAsJsonObject("message")
+                    .get("content").getAsString();
+
+        } catch (IOException e) {
+            return "OpenAI API Error: " + e.getMessage();
         }
     }
 
-    // ---------------- SUMMARY ----------------
     public String generateSummary(String transcript) {
-        String prompt =
-                "You are a professional meeting minutes assistant. " +
-                        "Generate clean and well-formatted meeting minutes from the following transcript. " +
-                        "Do NOT use markdown symbols such as **, ###, or quotes. " +
-                        "Return the output in this exact format:\\n\\n" +
-                        "Meeting Summary\\n" +
-                        "Write a concise summary in 4-6 sentences.\\n\\n" +
-                        "Main Decisions\\n" +
-                        "- Decision 1\\n" +
-                        "- Decision 2\\n" +
-                        "- Decision 3\\n\\n" +
-                        "Next Steps\\n" +
-                        "- Task 1\\n" +
-                        "- Task 2\\n" +
-                        "- Task 3\\n\\n" +
-                        "Transcript:\\n" + transcript;
-
-        return callGemini(prompt);
+        return callOpenAI(
+                "Generate professional meeting minutes from this transcript. " +
+                        "Include Meeting Summary, Main Decisions, and Next Steps.\\n\\nTranscript:\\n" + transcript
+        );
     }
 
-    // ---------------- ACTION ITEMS ----------------
     public String generateActionItems(String transcript) {
-        String prompt =
-                "Extract only the action items from this meeting transcript. " +
-                        "Return a clean numbered list with short task descriptions. " +
-                        "Do not include explanations or extra text.\\n\\nTranscript:\\n" + transcript;
-
-        return callGemini(prompt);
+        return callOpenAI(
+                "Extract only the action items from this meeting transcript as a numbered list.\\n\\nTranscript:\\n" + transcript
+        );
     }
 
-    // ---------------- KEY POINTS ----------------
     public String generateKeyPoints(String transcript) {
-        String prompt =
-                "Extract the key discussion points from the following meeting transcript. " +
-                        "Return 5-8 short bullet points starting with a hyphen. " +
-                        "Do not add markdown symbols, numbering, or extra explanations.\\n\\n" +
-                        transcript;
-
-        return callGemini(prompt);
+        return callOpenAI(
+                "Extract the key discussion points from this meeting transcript as bullet points.\\n\\nTranscript:\\n" + transcript
+        );
     }
 }
