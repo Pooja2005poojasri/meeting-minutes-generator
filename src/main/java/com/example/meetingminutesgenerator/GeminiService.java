@@ -1,12 +1,9 @@
 package com.example.meetingminutesgenerator;
 
-import com.google.gson.*;
+import com.google.genai.Client;
+import com.google.genai.types.GenerateContentResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
-import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
 
 @Service
 public class GeminiService {
@@ -16,71 +13,24 @@ public class GeminiService {
 
     private String callGemini(String prompt) {
         try {
-            String endpoint =
-                    "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
+            Client client = Client.builder()
+                    .apiKey(apiKey)
+                    .build();
 
-            URL url = new URL(endpoint);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            GenerateContentResponse response = client.models.generateContent(
+                    "gemini-2.5-flash",
+                    prompt,
+                    null
+            );
 
-            connection.setRequestMethod("POST");
-            connection.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-            connection.setRequestProperty("Authorization", "Bearer " + apiKey);
-            connection.setDoOutput(true);
-
-            JsonObject textPart = new JsonObject();
-            textPart.addProperty("text", prompt);
-
-            JsonArray parts = new JsonArray();
-            parts.add(textPart);
-
-            JsonObject content = new JsonObject();
-            content.add("parts", parts);
-
-            JsonArray contents = new JsonArray();
-            contents.add(content);
-
-            JsonObject body = new JsonObject();
-            body.add("contents", contents);
-
-            try (OutputStream os = connection.getOutputStream()) {
-                os.write(body.toString().getBytes("UTF-8"));
-            }
-
-            int status = connection.getResponseCode();
-
-            InputStream stream = (status >= 200 && status < 300)
-                    ? connection.getInputStream()
-                    : connection.getErrorStream();
-
-            BufferedReader reader = new BufferedReader(new InputStreamReader(stream, "UTF-8"));
-
-            StringBuilder response = new StringBuilder();
-            String line;
-
-            while ((line = reader.readLine()) != null) {
-                response.append(line);
-            }
-
-            reader.close();
-
-            if (status >= 300) {
-                return "Gemini API Error: " + response.toString();
-            }
-
-            JsonObject json = JsonParser.parseString(response.toString()).getAsJsonObject();
-
-            return json.getAsJsonArray("candidates")
-                    .get(0).getAsJsonObject()
-                    .getAsJsonObject("content")
-                    .getAsJsonArray("parts")
-                    .get(0).getAsJsonObject()
-                    .get("text").getAsString();
+            return response.text();
 
         } catch (Exception e) {
             return "Gemini API Error: " + e.getMessage();
         }
     }
 
+    // ---------------- SUMMARY ----------------
     public String generateSummary(String transcript) {
         String prompt =
                 "You are a professional meeting minutes assistant. " +
@@ -102,6 +52,7 @@ public class GeminiService {
         return callGemini(prompt);
     }
 
+    // ---------------- ACTION ITEMS ----------------
     public String generateActionItems(String transcript) {
         String prompt =
                 "Extract only the action items from this meeting transcript. " +
@@ -111,6 +62,7 @@ public class GeminiService {
         return callGemini(prompt);
     }
 
+    // ---------------- KEY POINTS ----------------
     public String generateKeyPoints(String transcript) {
         String prompt =
                 "Extract the key discussion points from the following meeting transcript. " +
