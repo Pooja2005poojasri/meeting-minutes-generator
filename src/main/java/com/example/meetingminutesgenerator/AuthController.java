@@ -2,7 +2,9 @@ package com.example.meetingminutesgenerator;
 
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 public class AuthController {
@@ -13,18 +15,26 @@ public class AuthController {
         this.userRepository = userRepository;
     }
 
+    // ---------------- REGISTER PAGE ----------------
     @GetMapping("/register")
     public String registerPage() {
         return "register";
     }
 
+    // ---------------- REGISTER USER ----------------
     @PostMapping("/register")
     public String registerUser(
             @RequestParam String name,
             @RequestParam String email,
             @RequestParam String password) {
 
+        // Check whether email already exists
+        if (userRepository.findByEmail(email) != null) {
+            return "redirect:/register?exists=true";
+        }
+
         User user = new User();
+
         user.setName(name);
         user.setEmail(email);
         user.setPassword(password);
@@ -34,11 +44,13 @@ public class AuthController {
         return "redirect:/login";
     }
 
+    // ---------------- LOGIN PAGE ----------------
     @GetMapping("/login")
     public String loginPage() {
         return "login";
     }
 
+    // ---------------- LOGIN USER ----------------
     @PostMapping("/login")
     public String loginUser(
             @RequestParam String email,
@@ -49,7 +61,6 @@ public class AuthController {
 
         if (user != null && user.getPassword().equals(password)) {
 
-            // Store logged-in user in session
             session.setAttribute("loggedInUser", user);
 
             return "redirect:/";
@@ -58,6 +69,7 @@ public class AuthController {
         return "redirect:/login?error=true";
     }
 
+    // ---------------- LOGOUT ----------------
     @GetMapping("/logout")
     public String logout(HttpSession session) {
 
