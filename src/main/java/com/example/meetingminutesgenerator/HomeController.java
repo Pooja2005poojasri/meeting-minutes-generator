@@ -98,7 +98,8 @@ public class HomeController {
         String actionItems = geminiService.generateActionItems(transcript);
         String keyPoints = geminiService.generateKeyPoints(transcript);
 
-        String meetingDateTime = LocalDateTime.now()
+// India time (IST)
+        String meetingDateTime = LocalDateTime.now(java.time.ZoneId.of("Asia/Kolkata"))
                 .format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"));
 
         model.addAttribute("title", title);
@@ -117,10 +118,13 @@ public class HomeController {
         history.setActionItems(actionItems);
         history.setKeyPoints(keyPoints);
         history.setDateTime(meetingDateTime);
-        history.setCreatedAt(LocalDateTime.now());
+        history.setCreatedAt(LocalDateTime.now(java.time.ZoneId.of("Asia/Kolkata")));
         history.setUser(user);
+
         meetingHistoryRepository.save(history);
+
         model.addAttribute("meetingId", history.getId());
+
         return "result";
 
     }
