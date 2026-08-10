@@ -15,26 +15,22 @@ public class AuthController {
         this.userRepository = userRepository;
     }
 
-    // ---------------- REGISTER PAGE ----------------
     @GetMapping("/register")
     public String registerPage() {
         return "register";
     }
 
-    // ---------------- REGISTER USER ----------------
     @PostMapping("/register")
     public String registerUser(
             @RequestParam String name,
             @RequestParam String email,
             @RequestParam String password) {
 
-        // Check whether email already exists
-        if (userRepository.findByEmail(email) != null) {
+        if (userRepository.findByEmail(email.trim().toLowerCase()) != null) {
             return "redirect:/register?exists=true";
         }
 
         User user = new User();
-
         user.setName(name);
         user.setEmail(email);
         user.setPassword(password);
@@ -44,13 +40,11 @@ public class AuthController {
         return "redirect:/login";
     }
 
-    // ---------------- LOGIN PAGE ----------------
     @GetMapping("/login")
     public String loginPage() {
         return "login";
     }
 
-    // ---------------- LOGIN USER ----------------
     @PostMapping("/login")
     public String loginUser(
             @RequestParam String email,
@@ -62,22 +56,16 @@ public class AuthController {
         User user = userRepository.findByEmail(email);
 
         if (user != null && user.getPassword().equals(password)) {
-
             session.setAttribute("loggedInUser", user);
-
             return "redirect:/";
         }
 
         return "redirect:/login?error=true";
     }
-    }
 
-    // ---------------- LOGOUT ----------------
     @GetMapping("/logout")
     public String logout(HttpSession session) {
-
         session.invalidate();
-
         return "redirect:/login";
     }
 }
