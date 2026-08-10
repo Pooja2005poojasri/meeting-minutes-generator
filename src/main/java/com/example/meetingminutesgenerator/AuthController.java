@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Controller
 public class AuthController {
 
+
     private final UserRepository userRepository;
 
     public AuthController(UserRepository userRepository) {
@@ -50,6 +51,12 @@ public class AuthController {
         return "redirect:/";
     }
 
+    // ---------------- LOGIN PAGE ----------------
+    @GetMapping("/login")
+    public String loginPage() {
+        return "login";
+    }
+
     // ---------------- LOGIN USER ----------------
     @PostMapping("/login")
     public String loginUser(
@@ -76,4 +83,6 @@ public class AuthController {
         session.invalidate();
         return "redirect:/login";
     }
+
+
 }
