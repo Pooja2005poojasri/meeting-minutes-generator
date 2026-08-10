@@ -57,6 +57,8 @@ public class AuthController {
             @RequestParam String password,
             HttpSession session) {
 
+        email = email.trim().toLowerCase();
+
         User user = userRepository.findByEmail(email);
 
         if (user != null && user.getPassword().equals(password)) {
@@ -67,6 +69,7 @@ public class AuthController {
         }
 
         return "redirect:/login?error=true";
+    }
     }
 
     // ---------------- LOGOUT ----------------
