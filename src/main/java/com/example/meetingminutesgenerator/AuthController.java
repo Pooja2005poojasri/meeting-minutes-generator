@@ -26,12 +26,13 @@ public class AuthController {
     public String registerUser(
             @RequestParam String name,
             @RequestParam String email,
-            @RequestParam String password) {
+            @RequestParam String password,
+            HttpSession session) {
 
         email = email.trim().toLowerCase();
 
-        // Check whether email already exists
         User existingUser = userRepository.findByEmail(email);
+
         if (existingUser != null) {
             return "redirect:/register?exists=true";
         }
@@ -41,16 +42,12 @@ public class AuthController {
         user.setEmail(email);
         user.setPassword(password.trim());
 
-        // Save immediately to database
         userRepository.saveAndFlush(user);
 
-        return "redirect:/login";
-    }
+        // Auto login after registration
+        session.setAttribute("loggedInUser", user);
 
-    // ---------------- LOGIN PAGE ----------------
-    @GetMapping("/login")
-    public String loginPage() {
-        return "login";
+        return "redirect:/";
     }
 
     // ---------------- LOGIN USER ----------------
