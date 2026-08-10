@@ -15,36 +15,45 @@ public class AuthController {
         this.userRepository = userRepository;
     }
 
+    // ---------------- REGISTER PAGE ----------------
     @GetMapping("/register")
     public String registerPage() {
         return "register";
     }
 
+    // ---------------- REGISTER USER ----------------
     @PostMapping("/register")
     public String registerUser(
             @RequestParam String name,
             @RequestParam String email,
             @RequestParam String password) {
 
-        if (userRepository.findByEmail(email.trim().toLowerCase()) != null) {
+        email = email.trim().toLowerCase();
+
+        // Check whether email already exists
+        User existingUser = userRepository.findByEmail(email);
+        if (existingUser != null) {
             return "redirect:/register?exists=true";
         }
 
         User user = new User();
-        user.setName(name);
+        user.setName(name.trim());
         user.setEmail(email);
-        user.setPassword(password);
+        user.setPassword(password.trim());
 
-        userRepository.save(user);
+        // Save immediately to database
+        userRepository.saveAndFlush(user);
 
         return "redirect:/login";
     }
 
+    // ---------------- LOGIN PAGE ----------------
     @GetMapping("/login")
     public String loginPage() {
         return "login";
     }
 
+    // ---------------- LOGIN USER ----------------
     @PostMapping("/login")
     public String loginUser(
             @RequestParam String email,
@@ -52,23 +61,19 @@ public class AuthController {
             HttpSession session) {
 
         email = email.trim().toLowerCase();
+        password = password.trim();
 
         User user = userRepository.findByEmail(email);
 
-        if (user == null) {
-            return "redirect:/login?error=true";
+        if (user != null && password.equals(user.getPassword())) {
+            session.setAttribute("loggedInUser", user);
+            return "redirect:/";
         }
 
-        if (!user.getPassword().trim().equals(password.trim())) {
-            return "redirect:/login?error=true";
-        }
-
-        session.setAttribute("loggedInUser", user);
-
-        return "redirect:/";
-
+        return "redirect:/login?error=true";
     }
 
+    // ---------------- LOGOUT ----------------
     @GetMapping("/logout")
     public String logout(HttpSession session) {
         session.invalidate();
