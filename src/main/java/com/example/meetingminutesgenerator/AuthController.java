@@ -55,12 +55,18 @@ public class AuthController {
 
         User user = userRepository.findByEmail(email);
 
-        if (user != null && user.getPassword().equals(password)) {
-            session.setAttribute("loggedInUser", user);
-            return "redirect:/";
+        if (user == null) {
+            return "redirect:/login?error=true";
         }
 
-        return "redirect:/login?error=true";
+        if (!user.getPassword().trim().equals(password.trim())) {
+            return "redirect:/login?error=true";
+        }
+
+        session.setAttribute("loggedInUser", user);
+
+        return "redirect:/";
+
     }
 
     @GetMapping("/logout")
